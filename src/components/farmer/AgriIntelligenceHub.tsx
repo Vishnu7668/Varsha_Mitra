@@ -220,39 +220,6 @@ export const AgriIntelligenceHub: React.FC = () => {
             </button>
           </form>
 
-          {/* Interactive Map Section */}
-          {showInteractiveMap && (
-            <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs">
-              <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
-                <span className="font-semibold flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Area View: {village.name}, {village.district}</span>
-                </span>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    `${mapsQuery} near ${village.district}, ${village.state}`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-emerald-600 hover:underline flex items-center gap-1 text-[11px]"
-                >
-                  <span>Open in Google Maps</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-              <LeafletMap
-                lat={village.lat}
-                lng={village.lng}
-                villageName={village.name}
-                district={village.district}
-                state={village.state}
-                status={advisory.status}
-                zoom={11}
-                isDarkMode={isDarkMode}
-                className="h-64 w-full"
-              />
-            </div>
-          )}
 
           {/* Maps Results Display */}
           {mapsLoading ? (
