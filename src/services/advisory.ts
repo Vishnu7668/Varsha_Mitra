@@ -16,14 +16,22 @@ const CROP_THRESHOLDS: Record<CropType, number> = {
   Maize: 45,     // Moderate water requirement
   Tur: 35,       // High drought tolerance, deep taproot once established
   Urad: 30,      // Short duration pulse, low water requirement
+  Wheat: 50,     // Rabi cereal staple across UP and North India
+  Sugarcane: 65, // Awadh and Rohilkhand sugarcane belt
+  Mustard: 35,   // Rapeseed-mustard, low water requirement
+  Potato: 45,    // Agra-Farrukhabad potato belt
+  Pulses: 35,    // Bundelkhand gram, lentil and arhar pulses
 };
 
 // Soil moisture retention factors (modifier to rainfall effectiveness)
 const SOIL_RETENTION_FACTORS: Record<SoilType, number> = {
   Black: 1.15,   // High clay content, excellent moisture holding capacity (Vertisols)
-  Alluvial: 1.0, // Well balanced loam, good drainage and retention
+  Alluvial: 1.0, // Well balanced loam, good drainage and retention (Gangetic Plains)
   Red: 0.85,     // Coarser texture, rapid drainage, higher drought vulnerability
   Laterite: 0.75,// Porous, low water holding, requires frequent replenishment
+  'Sandy Loam': 0.88, // Sandy loam in Doab and western belt
+  'Clay Loam': 1.08,  // Heavy clay loam in Terai and Eastern UP
+  'Bundelkhand Mixed': 0.80, // Rakar and Parwa soils of Bundelkhand
 };
 
 /**

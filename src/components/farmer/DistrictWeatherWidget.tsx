@@ -34,7 +34,7 @@ import {
 } from 'recharts';
 
 export const DistrictWeatherWidget: React.FC = () => {
-  const { village, isDarkMode, showToast, language, detectLiveLocation } = useApp();
+  const { village, isDarkMode, showToast, language, detectLiveLocation, isLocatingGPS } = useApp();
 
   const [weatherData, setWeatherData] = useState<RealtimeDistrictWeatherData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -216,11 +216,20 @@ export const DistrictWeatherWidget: React.FC = () => {
           <button
             type="button"
             onClick={detectLiveLocation}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-linear-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white shadow-md shadow-emerald-600/30 transition-all cursor-pointer"
-            title="Auto-detect my device GPS location"
+            disabled={isLocatingGPS}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              isLocatingGPS
+                ? 'bg-emerald-800 text-emerald-100 opacity-90 cursor-wait'
+                : 'bg-linear-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white shadow-md shadow-emerald-600/30'
+            }`}
+            title="Auto-detect my device GPS location & Reverse Geocode"
           >
-            <MapPin className="w-3.5 h-3.5 text-white animate-bounce" />
-            <span>Use Live GPS</span>
+            {isLocatingGPS ? (
+              <RotateCw className="w-3.5 h-3.5 text-white animate-spin" />
+            ) : (
+              <MapPin className="w-3.5 h-3.5 text-white animate-bounce" />
+            )}
+            <span>{isLocatingGPS ? 'Locating...' : 'Use Live GPS'}</span>
           </button>
 
           <button
@@ -269,11 +278,21 @@ export const DistrictWeatherWidget: React.FC = () => {
             </p>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-cyan-200 dark:border-slate-700 flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Past 24h Rain:</span>
-            <span className="font-extrabold text-cyan-700 dark:text-cyan-400 font-mono text-sm">
-              {weatherData.past24hRainMm} mm
-            </span>
+          <div className="mt-4 pt-3 border-t border-cyan-200 dark:border-slate-700 flex flex-col gap-1 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Past 24h Rain:</span>
+              <span className="font-extrabold text-cyan-700 dark:text-cyan-400 font-mono text-sm">
+                {weatherData.past24hRainMm} mm
+              </span>
+            </div>
+            {weatherData.et0Mm !== undefined && (
+              <div className="flex items-center justify-between text-[11px] pt-1">
+                <span className="text-slate-500 dark:text-slate-400">ET₀ Evapotranspiration:</span>
+                <span className="font-bold text-sky-700 dark:text-sky-300 font-mono">
+                  {weatherData.et0Mm} mm/day
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -376,8 +395,16 @@ export const DistrictWeatherWidget: React.FC = () => {
               </div>
             </div>
 
-            {/* Multi-depth Soil Temperature Strip */}
+            {/* Multi-depth Soil Temperature & Volumetric Moisture Strip */}
             <div className="mt-2 p-2.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-emerald-200 dark:border-slate-700 space-y-1 text-[11px]">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 font-medium">Volumetric (0–3cm):</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+                  {weatherData.volumetricSoilMoisture0to3cm !== undefined
+                    ? `${weatherData.volumetricSoilMoisture0to3cm} m³/m³`
+                    : '0.28 m³/m³'}
+                </span>
+              </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 font-medium">Seedbed (6cm):</span>
                 <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono">
@@ -421,7 +448,7 @@ export const DistrictWeatherWidget: React.FC = () => {
                 <span className="w-2.5 h-2.5 bg-cyan-500 rounded-xs" /> Rain (mm)
               </span>
               <span className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400 font-bold">
-                <span className="w-3 h-1 bg-indigo-500 rounded-full" /> Humidity (%)
+                <span className="w-2.5 h-2.5 bg-indigo-500 rounded-xs" /> Humidity (%)
               </span>
             </div>
           </div>

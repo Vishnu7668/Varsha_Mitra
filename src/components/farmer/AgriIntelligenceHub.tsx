@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
   searchWithGoogleGrounding,
@@ -16,19 +16,26 @@ import {
   RotateCw,
   Compass,
   FileText,
+  Navigation2,
+  CheckCircle,
+  Quote,
+  Map as MapIcon,
+  Globe,
 } from 'lucide-react';
+import { LeafletMap } from '../map/LeafletMap';
 
 export const AgriIntelligenceHub: React.FC = () => {
-  const { village, crop, language } = useApp();
+  const { village, crop, language, isDarkMode, advisory } = useApp();
 
   const [activeTab, setActiveTab] = useState<'maps' | 'search'>('maps');
+  const [showInteractiveMap, setShowInteractiveMap] = useState<boolean>(true);
 
   // Maps Grounding state
   const [mapsQuery, setMapsQuery] = useState<string>('Krishi Vigyan Kendra and APMC Mandi');
   const [mapsLoading, setMapsLoading] = useState<boolean>(false);
   const [mapsResult, setMapsResult] = useState<{
     text: string;
-    places: { title: string; uri: string; address?: string }[];
+    places: { title: string; uri: string; address?: string; reviewSnippets?: string[] }[];
   } | null>(null);
 
   // Search Grounding state
@@ -86,27 +93,33 @@ export const AgriIntelligenceHub: React.FC = () => {
     }
   };
 
+  // Initial fetch when village changes
+  useEffect(() => {
+    handleMapsSearch('Krishi Vigyan Kendra and APMC Mandi');
+    handleGoogleSearch(`IMD monsoon alert and APMC ${crop} market prices ${village.district}`);
+  }, [village.id, crop]);
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 sm:p-7 shadow-md border border-slate-200 dark:border-slate-700 space-y-5">
       {/* Header and Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-700">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-700">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              <span>Real-Time Agricultural Intelligence</span>
+              <Sparkles className="w-5 h-5 text-emerald-600 animate-pulse" />
+              <span>Real-Time Google Agricultural Intelligence</span>
             </h3>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
               Gemini 3.5 Flash Grounded
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Verified local centers via Google Maps and real-time agrometeorology via Google Search
+            Verified local facilities via Google Maps Grounding &amp; live agrometeorology via Google Search Grounding
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-700 text-xs font-bold self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-700 text-xs font-bold self-start lg:self-auto">
           <button
             type="button"
             onClick={() => {
@@ -120,7 +133,7 @@ export const AgriIntelligenceHub: React.FC = () => {
             }`}
           >
             <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Nearby Agri Centers (Google Maps)</span>
+            <span>Nearby Centers (Google Maps)</span>
           </button>
 
           <button
@@ -131,12 +144,12 @@ export const AgriIntelligenceHub: React.FC = () => {
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
               activeTab === 'search'
-                ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
+                ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
             }`}
           >
             <Search className="w-3.5 h-3.5 text-sky-600" />
-            <span>Monsoon &amp; Mandi News (Google Search)</span>
+            <span>Monsoon &amp; Mandi (Google Search)</span>
           </button>
         </div>
       </div>
@@ -196,7 +209,50 @@ export const AgriIntelligenceHub: React.FC = () => {
               {mapsLoading ? <RotateCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
               <span>Find on Maps</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setShowInteractiveMap(!showInteractiveMap)}
+              className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1 cursor-pointer shrink-0"
+              title="Toggle interactive map preview"
+            >
+              <MapIcon className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">{showInteractiveMap ? 'Hide Map' : 'Map View'}</span>
+            </button>
           </form>
+
+          {/* Interactive Map Section */}
+          {showInteractiveMap && (
+            <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs">
+              <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+                <span className="font-semibold flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Area View: {village.name}, {village.district}</span>
+                </span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    `${mapsQuery} near ${village.district}, ${village.state}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-emerald-600 hover:underline flex items-center gap-1 text-[11px]"
+                >
+                  <span>Open in Google Maps</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              <LeafletMap
+                lat={village.lat}
+                lng={village.lng}
+                villageName={village.name}
+                district={village.district}
+                state={village.state}
+                status={advisory.status}
+                zoom={11}
+                isDarkMode={isDarkMode}
+                className="h-64 w-full"
+              />
+            </div>
+          )}
 
           {/* Maps Results Display */}
           {mapsLoading ? (
@@ -213,36 +269,77 @@ export const AgriIntelligenceHub: React.FC = () => {
               {/* Clickable Grounded Places List */}
               {mapsResult.places.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Verified Google Maps Locations:
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Verified Google Maps Locations &amp; Grounding Chunks:
+                    </span>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${mapsQuery} near ${village.district}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-emerald-600 font-bold hover:underline"
+                    >
+                      Search All on Google Maps →
+                    </a>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    {mapsResult.places.map((place, idx) => (
-                      <a
-                        key={idx}
-                        href={place.uri}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-500 hover:shadow-md transition-all flex flex-col justify-between group"
-                      >
-                        <div>
-                          <div className="flex items-start justify-between gap-1 mb-1">
-                            <span className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 line-clamp-1">
-                              {place.title}
-                            </span>
-                            <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
+                    {mapsResult.places.map((place, idx) => {
+                      const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                        `${place.title}, ${place.address || village.district}`
+                      )}`;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-500 hover:shadow-md transition-all flex flex-col justify-between group"
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-1 mb-1.5">
+                              <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white group-hover:text-emerald-600 line-clamp-1">
+                                {place.title}
+                              </span>
+                              <Building2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            </div>
+                            {place.address && (
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
+                                {place.address}
+                              </p>
+                            )}
+
+                            {/* Extracted review snippets */}
+                            {place.reviewSnippets && place.reviewSnippets.length > 0 && (
+                              <div className="mt-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-[10px] text-slate-600 dark:text-slate-300 italic flex items-start gap-1">
+                                <Quote className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                                <span className="line-clamp-2">{place.reviewSnippets[0]}</span>
+                              </div>
+                            )}
                           </div>
-                          {place.address && (
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
-                              {place.address}
-                            </p>
-                          )}
+
+                          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-[11px]">
+                            <a
+                              href={place.uri}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-700 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1"
+                            >
+                              <span>Google Maps</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                            <a
+                              href={directionsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sky-600 dark:text-sky-400 font-semibold hover:underline flex items-center gap-0.5"
+                            >
+                              <Navigation2 className="w-3 h-3" />
+                              <span>Directions</span>
+                            </a>
+                          </div>
                         </div>
-                        <span className="mt-2 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                          Open in Google Maps →
-                        </span>
-                      </a>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

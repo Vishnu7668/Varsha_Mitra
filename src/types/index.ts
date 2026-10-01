@@ -1,8 +1,26 @@
 export type AdvisoryStatus = 'GREEN' | 'AMBER' | 'RED';
 
-export type CropType = 'Paddy' | 'Cotton' | 'Soybean' | 'Tur' | 'Urad' | 'Maize';
+export type CropType =
+  | 'Paddy'
+  | 'Cotton'
+  | 'Soybean'
+  | 'Tur'
+  | 'Urad'
+  | 'Maize'
+  | 'Wheat'
+  | 'Sugarcane'
+  | 'Mustard'
+  | 'Potato'
+  | 'Pulses';
 
-export type SoilType = 'Black' | 'Red' | 'Alluvial' | 'Laterite';
+export type SoilType =
+  | 'Black'
+  | 'Red'
+  | 'Alluvial'
+  | 'Laterite'
+  | 'Sandy Loam'
+  | 'Clay Loam'
+  | 'Bundelkhand Mixed';
 
 export type LanguageCode = 'en' | 'hi' | 'mr' | 'gu' | 'te' | 'kn' | 'ta';
 
@@ -23,7 +41,7 @@ export interface VillageLocation {
 }
 
 export interface DayForecast {
-  dayNumber: number; // -10 to -1 for past days, 1 to 30 for forecast
+  dayNumber: number; // -14 to -1 for past days, 1 to 16 for forecast
   dateStr: string;
   isPast?: boolean;
   rainMm: number;
@@ -31,6 +49,8 @@ export interface DayForecast {
   tempMax: number;
   tempMin: number;
   soilMoisturePercent: number; // 0 - 100
+  volumetricSoilMoisture?: number; // m3/m3 volumetric water content in 0-3cm topsoil
+  et0Mm?: number; // FAO-56 Reference Evapotranspiration (mm/day)
   isBreakDay?: boolean;
   confidenceZone: 'observed' | 'high' | 'medium' | 'indicative';
 }
@@ -153,6 +173,8 @@ export interface RealtimeDistrictWeatherData {
   soilTemp0cm?: number; // °C (surface)
   soilTemp6cm?: number; // °C (seedbed zone)
   soilTemp18cm?: number; // °C (root zone)
+  volumetricSoilMoisture0to3cm?: number; // m3/m3 topsoil moisture
+  et0Mm?: number; // FAO-56 Reference Evapotranspiration (mm/day)
   humidityStatus: 'Low' | 'Moderate' | 'High (Humid)' | 'Very High (Saturated)';
   rainStatus: 'No Rain' | 'Light Drizzle' | 'Moderate Rain' | 'Heavy Downpour';
   hourlyForecast: {

@@ -118,30 +118,40 @@ export const LandingPage: React.FC = () => {
                     <span>{village.name}, {village.district}</span>
                     <span>Target: <strong>{crop}</strong></span>
                   </div>
-
-                  <h3 className="text-xl font-black leading-snug">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">
                     {advisory.headline}
                   </h3>
-
                   <p className="mt-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     {advisory.summary}
                   </p>
+                </div>
 
-                  <div className="mt-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs font-semibold">
-                    <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                      <Calendar className="w-4 h-4 text-emerald-600" />
-                      <span>Safe Date: <strong>{advisory.safeSowingDate}</strong></span>
-                    </div>
-                    <div className="text-emerald-600 dark:text-emerald-400 font-bold">
-                      {advisory.confidencePercent}% Confidence
-                    </div>
+                <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800">
+                    <span className="block text-[10px] text-slate-400 font-semibold uppercase">
+                      Next 7d Rain
+                    </span>
+                    <span className="text-sm font-black text-sky-600 dark:text-sky-400">
+                      {advisory.expectedRainNext7Days} mm
+                    </span>
                   </div>
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800">
+                    <span className="block text-[10px] text-slate-400 font-semibold uppercase">
+                      Dry Break Risk
+                    </span>
+                    <span className="text-sm font-black text-amber-600 dark:text-amber-400">
+                      {advisory.dryBreakDays} Days
+                    </span>
+                  </div>
+                </div>
 
+                <div className="mt-4 pt-3 text-center">
                   <Link
                     to="/farmer"
-                    className="mt-4 w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs text-center block transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
                   >
-                    View Interactive 30-Day Outlook →
+                    <span>View Complete 16-Day Forecast &amp; Google Map</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               </div>
@@ -150,202 +160,60 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. Problem Section: 3 Animated Cards */}
-      <section className="py-16 sm:py-24 bg-[#fafaf5] dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
+      {/* 2. Three Pillars Section */}
+      <section className="py-16 sm:py-24 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
-              The Critical Blindspot
+          <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+              Built for Ground Realities
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-heading">
-              Why Indian Kharif farmers lose ₹15,000 per acre
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white font-heading">
+              Why Indian Farmers Need Varsha Mitra
             </h2>
-            <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-300">
-              Standard IMD weather forecasts work well for days 1 to 5, but decisions to sow seeds require a 21-day continuous moisture runway.
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+              The Southwest Monsoon is increasingly characterized by erratic onset bursts followed by prolonged dry breaks that decimate newly sown seeds.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-12">
-            {/* Card 1: 5-Day Forecast Limit */}
-            <div className="rounded-3xl p-6 bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 hover:border-emerald-400 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center mb-5">
-                <Clock className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                1. The 5-Day Forecast Horizon Limit
-              </h3>
-              <p className="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Atmospheric turbulence degrades standard numerical weather models after 5 days. Farmers receive zero probabilistic guidance for Weeks 2 through 4, exactly when germination decisions are irreversible.
-              </p>
-            </div>
-
-            {/* Card 2: False Onset */}
-            <div className="rounded-3xl p-6 bg-white dark:bg-slate-800 shadow-md border border-rose-200 dark:border-rose-900/50 hover:border-rose-400 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 flex items-center justify-center mb-5">
-                <ShieldAlert className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                2. False Monsoon Onset Traps
-              </h3>
-              <p className="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Isolated pre-monsoon convective thunderstorms drop 25-30 mm rain. Farmers rush to sow costly hybrid cotton or soybean seeds. But the true monsoon hasn’t arrived; seeds burn or rot underground.
-              </p>
-            </div>
-
-            {/* Card 3: Prolonged Dry Breaks */}
-            <div className="rounded-3xl p-6 bg-white dark:bg-slate-800 shadow-md border border-amber-200 dark:border-amber-900/50 hover:border-amber-400 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center mb-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
                 <TrendingDown className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                3. Prolonged 10 to 20 Day Dry Breaks
+                Prevent ₹8,000/Acre Resowing Loss
               </h3>
-              <p className="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Even with genuine onset, the monsoon trough often shifts north into the Himalayan foothills, inducing a 12-18 day rain pause. Tender 10-day-old seedlings wither without root moisture.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Premature sowing triggered by a single early pre-monsoon shower causes catastrophic seed scorch if followed by a 10-day dry break.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center font-bold">
+                <Compass className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Google Satellite &amp; Places Grounding
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Pin your exact farm plot on Google Maps with satellite imagery, 5km microclimate Doppler radar radius, and search any village across India.
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                75 Uttar Pradesh Districts Covered
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Full block and gram panchayat database for Purvanchal, Awadh, Rohilkhand, Doab, and Bundelkhand with tailored soil and crop guidance.
               </p>
             </div>
           </div>
         </div>
       </section>
-
-      {/* 3. Consequences Strip */}
-      <section className="py-8 bg-linear-to-r from-rose-900 via-rose-950 to-slate-900 text-rose-100 text-xs sm:text-sm font-semibold">
-        <div className="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-around gap-4 text-center">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-            <span>Severe Crop Failure in 1st Sowing</span>
-          </div>
-          <div className="hidden sm:block">•</div>
-          <div className="flex items-center gap-2">
-            <span>Spiral of Informal Moneylender Debt (Resowing costs ₹15k/acre)</span>
-          </div>
-          <div className="hidden sm:block">•</div>
-          <div className="flex items-center gap-2">
-            <span>Delayed Government Disaster Response</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. "How It Works" 4-Step Animated Flow */}
-      <section className="py-16 sm:py-24 bg-white dark:bg-slate-950 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
-              Algorithmic Decision Pipeline
-            </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-heading">
-              How Varsha Mitra Protects Sowing
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12 relative">
-            {/* Step 1 */}
-            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-black text-sm flex items-center justify-center mx-auto mb-4">
-                1
-              </div>
-              <h4 className="font-bold text-slate-900 dark:text-white text-base">Village &amp; Crop Match</h4>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                GPS or cascading selection locates the Gram Panchayat, root-zone soil texture, and targeted Kharif crop.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-black text-sm flex items-center justify-center mx-auto mb-4">
-                2
-              </div>
-              <h4 className="font-bold text-slate-900 dark:text-white text-base">Extended Rain Prediction</h4>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Ensemble downscaling combines ERA5-Land, Open-Meteo, and MJO indices to project daily rain mm and probability across 30 days.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-black text-sm flex items-center justify-center mx-auto mb-4">
-                3
-              </div>
-              <h4 className="font-bold text-slate-900 dark:text-white text-base">Dry-Break Risk Decision</h4>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Rules engine evaluates crop water needs, break duration probability (&gt;50%), and flags false-onset anomalies.
-              </p>
-            </div>
-
-            {/* Step 4 */}
-            <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
-              <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-black text-sm flex items-center justify-center mx-auto mb-4">
-                4
-              </div>
-              <h4 className="font-bold text-slate-900 dark:text-white text-base">Actionable Farmer Advisory</h4>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Farmer receives clear traffic-light signal: Sow within 48h, hold until safe revival date, or switch to drought seeds.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Projected Impact Counters */}
-      <section className="py-16 bg-emerald-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h3 className="text-2xl sm:text-3xl font-bold font-heading">
-              Projected System Outcomes
-            </h3>
-            <p className="text-xs text-emerald-200/80 mt-1">
-              *All counter values represent projected engineering targets, not measured field totals.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="p-5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <div className="text-3xl sm:text-4xl font-black text-emerald-300">7 to 30</div>
-              <div className="text-xs font-semibold text-emerald-100 mt-1">Day Decision Window</div>
-              <div className="text-[10px] text-emerald-300/70 mt-1">Projected model horizon</div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <div className="text-3xl sm:text-4xl font-black text-emerald-300">₹12k - 15k</div>
-              <div className="text-xs font-semibold text-emerald-100 mt-1">Per Acre Potential Saving</div>
-              <div className="text-[10px] text-emerald-300/70 mt-1">Avoiding resowing failure</div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <div className="text-3xl sm:text-4xl font-black text-emerald-300">7+</div>
-              <div className="text-xs font-semibold text-emerald-100 mt-1">Indian Languages</div>
-              <div className="text-[10px] text-emerald-300/70 mt-1">English, Hindi, Marathi + 4</div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10">
-              <div className="text-3xl sm:text-4xl font-black text-emerald-300">2G SMS</div>
-              <div className="text-xs font-semibold text-emerald-100 mt-1">Inclusive Delivery</div>
-              <div className="text-[10px] text-emerald-300/70 mt-1">Zero internet required</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Footer */}
-      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-10 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <Logo size="sm" />
-          </div>
-
-          <div className="flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-400">
-            <Link to="/farmer" className="hover:text-emerald-600 transition-colors">Farmer Advisory</Link>
-            <Link to="/officer" className="hover:text-emerald-600 transition-colors">Officer Dashboard</Link>
-            <Link to="/sms" className="hover:text-emerald-600 transition-colors">SMS/IVR Simulator</Link>
-            <Link to="/insurance" className="hover:text-emerald-600 transition-colors">PMFBY Evidence</Link>
-            <Link to="/about" className="hover:text-emerald-600 transition-colors">Architecture</Link>
-          </div>
-
-          <p className="text-[11px] text-slate-400">
-            VARSHA MITRA • Hyperlocal Agrometeorological Advisory Prototype
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

@@ -11,6 +11,7 @@ import { VILLAGES_DATABASE } from '../data/villages';
 import { SCENARIO_PRESETS } from '../data/scenarios';
 import { calculateAdvisory } from '../services/advisory';
 import { getWeatherData } from '../services/weather';
+import { reverseGeocodeWithBigDataCloud, toVillageLocation } from '../services/geocoding';
 import { TRANSLATIONS, TranslationDictionary } from '../translations';
 
 interface AppContextType {
@@ -37,6 +38,7 @@ interface AppContextType {
   setUseLiveData: (val: boolean) => void;
   dataSource: string;
   isLoadingWeather: boolean;
+  isLocatingGPS: boolean;
   refreshWeather: () => Promise<void>;
   detectLiveLocation: () => Promise<void>;
 
@@ -75,7 +77,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 2. Dark mode state
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('varsha_dark');
-    return saved === 'true';
+    if (saved !== null) {
+      return saved === 'true';
+    }
+    return typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : false;
   });
 
   useEffect(() => {
@@ -127,6 +134,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [dataSource, setDataSource] = useState<string>('Live Doppler Radar & Satellite Telemetry');
   const [forecasts, setForecasts] = useState<DayForecast[]>([]);
   const [isLoadingWeather, setIsLoadingWeather] = useState<boolean>(false);
+  const [isLocatingGPS, setIsLocatingGPS] = useState<boolean>(false);
   const [customThresholdMm, setCustomThresholdMm] = useState<number | undefined>(undefined);
 
   // 5. Toast
@@ -196,28 +204,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setUseLiveData = useCallback((val: boolean) => {
     setUseLiveDataState(val);
-    showToast(val ? 'Syncing live 14-day high-resolution forecast...' : 'Loaded regional baseline.', 'info');
+    showToast(val ? 'Syncing live 16-day high-resolution forecast...' : 'Loaded regional baseline.', 'info');
   }, [showToast]);
 
-  // Real Live Location via Geolocation API
+  // Real Live Location via Geolocation API + Google Geocoding / BigDataCloud Reverse Geocoding + Multi-tier IP fallback
   const detectLiveLocation = useCallback(async () => {
-    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
-      showToast('Geolocation is not supported by your browser', 'warning');
-      return;
-    }
+    setIsLocatingGPS(true);
+    showToast('Acquiring live location coordinates...', 'info');
 
-    showToast('Detecting your live GPS coordinates...', 'info');
+    // Helper to resolve coordinates through Google Geocoding / BigDataCloud and apply state
+    const resolveAndApplyLocation = async (lat: number, lng: number, sourceTag: string) => {
+      try {
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyAAoNTNBsb_JVxs9YCm9STK3YkcqI4ymz4';
+        let villageName = '';
+        let block = '';
+        let district = '';
+        let state = 'Uttar Pradesh';
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
+        // Try Google Geocoding API first for highest accuracy in India
+        if (apiKey) {
+          try {
+            const gUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+            const gResp = await fetch(gUrl, { signal: AbortSignal.timeout(4000) });
+            if (gResp.ok) {
+              const gData = await gResp.json();
+              if (gData.results && gData.results.length > 0) {
+                const firstResult = gData.results[0];
+                for (const comp of firstResult.address_components) {
+                  const types: string[] = comp.types || [];
+                  if (types.includes('sublocality_level_1') || types.includes('locality')) {
+                    villageName = comp.long_name || villageName;
+                  }
+                  if (types.includes('administrative_area_level_3') || types.includes('sublocality')) {
+                    block = comp.long_name || block;
+                  }
+                  if (types.includes('administrative_area_level_2')) {
+                    district = comp.long_name || district;
+                  }
+                  if (types.includes('administrative_area_level_1')) {
+                    state = comp.long_name || state;
+                  }
+                }
+              }
+            }
+          } catch (gErr) {
+            console.warn('Google reverse geocode fallback to BigDataCloud:', gErr);
+          }
+        }
 
-        // Find closest station or create real dynamic location
+        // Fallback to BigDataCloud reverse geocode if needed
+        if (!villageName || !district) {
+          const rev = await reverseGeocodeWithBigDataCloud(lat, lng);
+          villageName = villageName || rev.name || `Point ${lat.toFixed(2)}°N`;
+          block = block || rev.block || 'Local Block';
+          district = district || rev.district || 'Local District';
+          state = state || rev.state || 'India';
+        }
+
+        // Find closest baseline station for soil and crop defaults
         let closestVillage = VILLAGES_DATABASE[0];
         let minDist = Number.MAX_VALUE;
-
         for (const v of VILLAGES_DATABASE) {
-          const d = Math.hypot(v.lat - latitude, v.lng - longitude);
+          const d = Math.hypot(v.lat - lat, v.lng - lng);
           if (d < minDist) {
             minDist = d;
             closestVillage = v;
@@ -225,34 +273,115 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
 
         const dynamicVillage: VillageLocation = {
-          id: `live-gps-${Date.now()}`,
-          name: closestVillage.name,
-          nameHi: closestVillage.nameHi,
-          nameMr: closestVillage.nameMr,
-          block: closestVillage.block,
-          district: closestVillage.district,
-          state: closestVillage.state,
-          lat: latitude,
-          lng: longitude,
+          id: `live-loc-${Date.now()}`,
+          name: villageName || `Farm (${lat.toFixed(3)}°N)`,
+          nameHi: villageName || `कृषि स्थान`,
+          nameMr: villageName || `कृषी स्थान`,
+          block: block || closestVillage.block,
+          district: district || closestVillage.district,
+          state: state || closestVillage.state,
+          lat: Number(lat.toFixed(4)),
+          lng: Number(lng.toFixed(4)),
           defaultCrop: closestVillage.defaultCrop,
           defaultSoil: closestVillage.defaultSoil,
-          registeredFarmers: closestVillage.registeredFarmers,
-          cultivatedAcreage: closestVillage.cultivatedAcreage,
+          registeredFarmers: 680,
+          cultivatedAcreage: 1950,
         };
 
         setVillageState(dynamicVillage);
         setUseLiveDataState(true);
         showToast(
-          `GPS Locked: ${closestVillage.district} Region (${latitude.toFixed(3)}°N, ${longitude.toFixed(3)}°E). Synced live weather telemetry.`,
+          `Location Detected (${sourceTag}): ${dynamicVillage.name}, ${dynamicVillage.district} (${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E)`,
           'success'
         );
-      },
-      (err) => {
-        console.warn('Geolocation error:', err);
-        showToast('GPS access denied or timed out. Using station default.', 'warning');
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
+      } catch (err) {
+        console.warn('Reverse geocode error, applying direct coords:', err);
+        const fallbackVillage: VillageLocation = {
+          id: `live-gps-${Date.now()}`,
+          name: `Farm Point (${lat.toFixed(2)}°N, ${lng.toFixed(2)}°E)`,
+          nameHi: `जीपीएस स्थान`,
+          nameMr: `जीपीएस स्थान`,
+          block: 'Agro Block',
+          district: 'District',
+          state: 'Uttar Pradesh',
+          lat,
+          lng,
+          defaultCrop: 'Paddy',
+          defaultSoil: 'Alluvial',
+          registeredFarmers: 500,
+          cultivatedAcreage: 1500,
+        };
+        setVillageState(fallbackVillage);
+        setUseLiveDataState(true);
+        showToast(`GPS Position Locked: ${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E`, 'success');
+      } finally {
+        setIsLocatingGPS(false);
+      }
+    };
+
+    // Attempt IP-based geolocation fallback
+    const tryIpGeolocation = async () => {
+      // 1. Try ipwho.is (fast, no rate-limiting key needed)
+      try {
+        const res = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(3500) });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+            await resolveAndApplyLocation(data.latitude, data.longitude, 'IP Network');
+            return true;
+          }
+        }
+      } catch (e1) {
+        console.warn('ipwho.is failed, trying ipapi.co:', e1);
+      }
+
+      // 2. Try ipapi.co
+      try {
+        const ipResp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3500) });
+        if (ipResp.ok) {
+          const ipData = await ipResp.json();
+          if (ipData.latitude && ipData.longitude) {
+            await resolveAndApplyLocation(Number(ipData.latitude), Number(ipData.longitude), 'IP Network');
+            return true;
+          }
+        }
+      } catch (e2) {
+        console.warn('ipapi.co fallback failed:', e2);
+      }
+
+      return false;
+    };
+
+    // Try browser geolocation first
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          resolveAndApplyLocation(pos.coords.latitude, pos.coords.longitude, 'Browser GPS');
+        },
+        async (err) => {
+          console.warn('Browser GPS prompt denied or timed out, trying IP geolocation:', err);
+          const ipSuccess = await tryIpGeolocation();
+          if (!ipSuccess) {
+            // Default to Shivpur, Varanasi (central Purvanchal benchmark)
+            const fallbackStation = VILLAGES_DATABASE[0];
+            setVillageState(fallbackStation);
+            setUseLiveDataState(true);
+            setIsLocatingGPS(false);
+            showToast(
+              `Using reference station: ${fallbackStation.name}, ${fallbackStation.district} (${fallbackStation.state}).`,
+              'info'
+            );
+          }
+        },
+        { timeout: 8000, enableHighAccuracy: true, maximumAge: 300000 }
+      );
+    } else {
+      const ipSuccess = await tryIpGeolocation();
+      if (!ipSuccess) {
+        setIsLocatingGPS(false);
+        showToast('Using central agro-climatic station.', 'info');
+      }
+    }
   }, [showToast]);
 
   // Select Regional Profile
@@ -305,6 +434,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUseLiveData,
         dataSource,
         isLoadingWeather,
+        isLocatingGPS,
         refreshWeather,
         detectLiveLocation,
         aiMode,

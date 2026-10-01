@@ -99,25 +99,25 @@ Check full details on Varsha Mitra!`;
   // Border & background themes based on status
   const cardThemes = {
     GREEN: {
-      wrapper: 'border-emerald-500/40 bg-linear-to-br from-emerald-50/70 via-white to-emerald-50/30 dark:from-emerald-950/40 dark:via-slate-900 dark:to-emerald-950/20',
+      wrapper: 'border-emerald-200 dark:border-emerald-700/60 bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/20 dark:from-slate-900 dark:via-slate-850 dark:to-emerald-950/40 shadow-sm',
       badgeBg: 'bg-emerald-600 text-white',
-      borderAccent: 'border-emerald-500',
+      borderAccent: 'border-emerald-400 dark:border-emerald-600',
       icon: CheckCircle2,
-      iconColor: 'text-emerald-600',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
     },
     AMBER: {
-      wrapper: 'border-amber-500/40 bg-linear-to-br from-amber-50/70 via-white to-amber-50/30 dark:from-amber-950/40 dark:via-slate-900 dark:to-amber-950/20',
+      wrapper: 'border-amber-200 dark:border-amber-700/60 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/20 dark:from-slate-900 dark:via-slate-850 dark:to-amber-950/40 shadow-sm',
       badgeBg: 'bg-amber-600 text-white',
-      borderAccent: 'border-amber-500',
+      borderAccent: 'border-amber-400 dark:border-amber-600',
       icon: AlertTriangle,
-      iconColor: 'text-amber-600',
+      iconColor: 'text-amber-600 dark:text-amber-400',
     },
     RED: {
-      wrapper: 'border-rose-500/40 bg-linear-to-br from-rose-50/70 via-white to-rose-50/30 dark:from-rose-950/40 dark:via-slate-900 dark:to-rose-950/20',
+      wrapper: 'border-rose-200 dark:border-rose-700/60 bg-gradient-to-br from-rose-50/60 via-white to-rose-50/20 dark:from-slate-900 dark:via-slate-850 dark:to-rose-950/40 shadow-sm',
       badgeBg: 'bg-rose-600 text-white',
-      borderAccent: 'border-rose-500',
+      borderAccent: 'border-rose-400 dark:border-rose-600',
       icon: AlertOctagon,
-      iconColor: 'text-rose-600',
+      iconColor: 'text-rose-600 dark:text-rose-400',
     },
   };
 

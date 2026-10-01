@@ -1,5 +1,6 @@
 import { DayForecast, RealtimeDistrictWeatherData, VillageLocation } from '../types';
 import { generateScenarioWeather } from '../data/scenarios';
+import { fetchHistoricalWeatherRecords } from './historical';
 
 export interface WeatherFetchOptions {
   village: VillageLocation;
@@ -9,9 +10,10 @@ export interface WeatherFetchOptions {
 
 /**
  * Service to fetch weather data:
- * - Uses regional agrometeorological baseline
- * - Fetches high-resolution live days from Open-Meteo API
- * - Merges observed past 10 days + live days 1-14 + ensemble outlook
+ * - Ingests real-time observations and 7–16 day forecasts from Open-Meteo Forecast API
+ * - Ingests past 14-day rainfall and temperature records from Open-Meteo Archive API
+ * - Supplies temperature, humidity, wind, rainfall sum, precipitation probability,
+ *   volumetric soil moisture (0–3cm), and ET₀ (evapotranspiration).
  */
 export async function getWeatherData(options: WeatherFetchOptions): Promise<{
   forecasts: DayForecast[];
@@ -20,7 +22,7 @@ export async function getWeatherData(options: WeatherFetchOptions): Promise<{
 }> {
   const { village, useLiveData = true, activeScenarioId } = options;
 
-  // Base forecast calculated for the village
+  // Base forecast calculated for the village scenario
   const baseForecasts = generateScenarioWeather(activeScenarioId || 'normal-onset-paddy');
 
   if (useLiveData === false) {
@@ -32,65 +34,117 @@ export async function getWeatherData(options: WeatherFetchOptions): Promise<{
   }
 
   try {
-    // Attempt fetching live data from Open-Meteo
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${village.lat}&longitude=${village.lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata&forecast_days=14`;
+    // 1. Fetch 16-day forecast with daily ET0, precipitation, temp, and hourly soil moisture (0-3cm)
+    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${village.lat}&longitude=${village.lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_1cm,soil_moisture_1_to_3cm&timezone=Asia%2FKolkata&forecast_days=16`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4500); // 4.5s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5500);
 
-    const resp = await fetch(url, { signal: controller.signal });
+    const [forecastResp, pastRecords] = await Promise.all([
+      fetch(forecastUrl, { signal: controller.signal }).catch((err) => {
+        console.warn('Forecast API fetch error:', err);
+        return null;
+      }),
+      fetchHistoricalWeatherRecords(village.lat, village.lng, 14).catch((err) => {
+        console.warn('Archive API fetch error:', err);
+        return [];
+      }),
+    ]);
     clearTimeout(timeoutId);
 
-    if (!resp.ok) {
-      throw new Error(`Open-Meteo HTTP ${resp.status}`);
+    if (!forecastResp || !forecastResp.ok) {
+      throw new Error(`Open-Meteo HTTP ${forecastResp ? forecastResp.status : 'Network error'}`);
     }
 
-    const data = await resp.json();
+    const data = await forecastResp.json();
     const daily = data?.daily;
+    const hourly = data?.hourly;
 
     if (!daily || !daily.time || daily.time.length < 7) {
       throw new Error('Incomplete daily data from Open-Meteo');
     }
 
-    // Merge live days into days 1 to 14
-    const merged: DayForecast[] = baseForecasts.map((item) => {
-      // Past days remain as observed
-      if (item.isPast) return item;
-
-      // Days 1 to 14 replaced with live Open-Meteo telemetry
-      if (item.dayNumber >= 1 && item.dayNumber <= 14 && daily.precipitation_sum?.[item.dayNumber - 1] !== undefined) {
-        const idx = item.dayNumber - 1;
-        const rainMm = daily.precipitation_sum?.[idx] ?? item.rainMm;
-        const rainProb = daily.precipitation_probability_max?.[idx] ?? item.rainProb;
-        const tempMax = Math.round(daily.temperature_2m_max?.[idx] ?? item.tempMax);
-        const tempMin = Math.round(daily.temperature_2m_min?.[idx] ?? item.tempMin);
-        const isBreakDay = rainMm < 2.5;
-
-        // Soil moisture response to precipitation
-        const soilMoist = Math.min(
-          95,
-          Math.max(20, Math.round(35 + rainMm * 2.2))
-        );
-
-        return {
-          ...item,
-          rainMm: Number(rainMm.toFixed(1)),
-          rainProb: Math.min(100, Math.max(0, rainProb)),
-          tempMax,
-          tempMin,
-          soilMoisturePercent: soilMoist,
-          isBreakDay,
-          confidenceZone: 'high',
-        };
-      }
-
-      return item;
+    // 2. Build past 14 days forecasts from Open-Meteo Archive API records
+    const pastForecastDays: DayForecast[] = pastRecords.map((hist, idx) => {
+      const dayOffset = hist.dayOffset || -1 * (pastRecords.length - idx);
+      const isBreak = hist.rainMm < 2.5;
+      return {
+        dayNumber: dayOffset,
+        dateStr: hist.dateStr,
+        isPast: true,
+        rainMm: hist.rainMm,
+        rainProb: 0,
+        tempMax: hist.tempMax,
+        tempMin: hist.tempMin,
+        soilMoisturePercent: Math.min(95, Math.max(20, Math.round(30 + hist.rainMm * 2.2))),
+        volumetricSoilMoisture: Number((0.22 + (hist.rainMm / 50) * 0.15).toFixed(3)),
+        et0Mm: hist.et0Mm,
+        isBreakDay: isBreak,
+        confidenceZone: 'observed',
+      };
     });
 
+    // 3. Build 16 days forward forecast from Open-Meteo Forecast API
+    const sm01 = hourly?.soil_moisture_0_to_1cm || [];
+    const sm13 = hourly?.soil_moisture_1_to_3cm || [];
+
+    const futureForecastDays: DayForecast[] = daily.time.map((dateStr: string, idx: number) => {
+      const dayNumber = idx + 1;
+      const rainMm = Number((daily.precipitation_sum?.[idx] ?? 0).toFixed(1));
+      const rainProb = Math.min(100, Math.max(0, Math.round(daily.precipitation_probability_max?.[idx] ?? 0)));
+      const tempMax = Math.round(daily.temperature_2m_max?.[idx] ?? 32);
+      const tempMin = Math.round(daily.temperature_2m_min?.[idx] ?? 24);
+      const et0 = Number((daily.et0_fao_evapotranspiration?.[idx] ?? 4.5).toFixed(1));
+      const isBreakDay = rainMm < 2.5;
+
+      // Volumetric soil moisture 0-3cm average from hourly slices
+      const hStart = idx * 24;
+      const hEnd = hStart + 24;
+      let dayVolumetricSm = 0.28;
+      if (sm01.length >= hEnd && sm13.length >= hEnd) {
+        let sum = 0;
+        let count = 0;
+        for (let h = hStart; h < hEnd; h++) {
+          if (sm01[h] !== undefined && sm13[h] !== undefined) {
+            sum += (sm01[h] + sm13[h]) / 2;
+            count++;
+          }
+        }
+        if (count > 0) dayVolumetricSm = Number((sum / count).toFixed(3));
+      } else {
+        dayVolumetricSm = Number(Math.min(0.48, Math.max(0.12, 0.22 + (rainMm / 60) * 0.2)).toFixed(3));
+      }
+
+      const soilMoistPercent = Math.min(100, Math.max(15, Math.round(dayVolumetricSm * 210)));
+
+      let confidenceZone: DayForecast['confidenceZone'] = 'indicative';
+      if (dayNumber <= 7) confidenceZone = 'high';
+      else if (dayNumber <= 12) confidenceZone = 'medium';
+
+      return {
+        dayNumber,
+        dateStr,
+        isPast: false,
+        rainMm,
+        rainProb,
+        tempMax,
+        tempMin,
+        soilMoisturePercent: soilMoistPercent,
+        volumetricSoilMoisture: dayVolumetricSm,
+        et0Mm: et0,
+        isBreakDay,
+        confidenceZone,
+      };
+    });
+
+    // Merge: If we got past days from Open-Meteo Archive API, use them; otherwise use base past days
+    const pastMerged = pastForecastDays.length >= 7 ? pastForecastDays : baseForecasts.filter((b) => b.isPast);
+    const combinedForecasts = [...pastMerged, ...futureForecastDays];
+
     return {
-      forecasts: merged,
+      forecasts: combinedForecasts,
       isLive: true,
-      dataSource: 'Live National Agrometeorological Radar & NWP Weather Telemetry',
+      dataSource: 'Live Open-Meteo Forecast & Archive APIs (ECMWF & GFS NWP Ensemble)',
     };
   } catch (err) {
     console.warn('Live weather fetch error, utilizing calibrated station telemetry:', err);
@@ -102,7 +156,7 @@ export async function getWeatherData(options: WeatherFetchOptions): Promise<{
   }
 }
 
-function getWeatherCondition(code: number): string {
+export function getWeatherCondition(code: number): string {
   if (code === 0) return 'Clear Sky';
   if (code === 1 || code === 2) return 'Partly Cloudy';
   if (code === 3) return 'Overcast Skies';
@@ -117,9 +171,8 @@ function getWeatherCondition(code: number): string {
 
 /**
  * Fetches real-time district-level weather telemetry:
- * - Real-time rainfall rate (mm/h) & past 24h precipitation
- * - Real-time relative humidity (%) & atmospheric dew point
- * - Temperature, surface pressure, wind speed
+ * - Real-time observations: temperature, humidity, wind, rainfall sum,
+ *   precipitation probability, volumetric soil moisture (0–3cm), and ET₀.
  * - Next 12 to 24 hours hourly precipitation & humidity trend
  */
 export async function getRealtimeDistrictWeather(
@@ -131,7 +184,7 @@ export async function getRealtimeDistrictWeather(
   });
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${village.lat}&longitude=${village.lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=precipitation,relative_humidity_2m,temperature_2m,soil_temperature_0cm,soil_temperature_6cm,soil_temperature_18cm&timezone=Asia%2FKolkata&forecast_days=2&past_days=1`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${village.lat}&longitude=${village.lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=precipitation,relative_humidity_2m,temperature_2m,soil_temperature_0cm,soil_temperature_6cm,soil_temperature_18cm,soil_moisture_0_to_1cm,soil_moisture_1_to_3cm,et0_fao_evapotranspiration&daily=et0_fao_evapotranspiration&timezone=Asia%2FKolkata&forecast_days=2&past_days=1`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4500);
@@ -146,6 +199,7 @@ export async function getRealtimeDistrictWeather(
     const data = await resp.json();
     const current = data?.current;
     const hourly = data?.hourly;
+    const daily = data?.daily;
 
     if (!current) {
       throw new Error('Current telemetry missing from Open-Meteo');
@@ -159,6 +213,7 @@ export async function getRealtimeDistrictWeather(
     const windSpeed = Math.round(current.wind_speed_10m ?? 12);
     const windDirection = Math.round(current.wind_direction_10m ?? 270);
     const surfacePressure = Math.round(current.surface_pressure ?? 1008);
+    const et0Today = Number((daily?.et0_fao_evapotranspiration?.[0] ?? 4.5).toFixed(1));
 
     // Dew point approximation: Td = T - ((100 - RH) / 5)
     const dewPoint = Math.round((temp - (100 - humidity) / 5) * 10) / 10;
@@ -194,16 +249,27 @@ export async function getRealtimeDistrictWeather(
 
     past24hRain = Number(past24hRain.toFixed(1));
 
+    // Volumetric soil moisture (0-3cm topsoil)
+    let currentVolumetricSm03 = 0.28;
+    if (hourly?.soil_moisture_0_to_1cm?.[safeIndex] !== undefined && hourly?.soil_moisture_1_to_3cm?.[safeIndex] !== undefined) {
+      currentVolumetricSm03 = Number(
+        ((hourly.soil_moisture_0_to_1cm[safeIndex] + hourly.soil_moisture_1_to_3cm[safeIndex]) / 2).toFixed(3)
+      );
+    }
+
     // Soil temperatures
-    const soilTemp0cm = hourly?.soil_temperature_0cm?.[safeIndex] !== undefined
-      ? Math.round(hourly.soil_temperature_0cm[safeIndex] * 10) / 10
-      : Math.round((temp + 2.5) * 10) / 10;
-    const soilTemp6cm = hourly?.soil_temperature_6cm?.[safeIndex] !== undefined
-      ? Math.round(hourly.soil_temperature_6cm[safeIndex] * 10) / 10
-      : Math.round((temp + 1.2) * 10) / 10;
-    const soilTemp18cm = hourly?.soil_temperature_18cm?.[safeIndex] !== undefined
-      ? Math.round(hourly.soil_temperature_18cm[safeIndex] * 10) / 10
-      : Math.round((temp - 0.6) * 10) / 10;
+    const soilTemp0cm =
+      hourly?.soil_temperature_0cm?.[safeIndex] !== undefined
+        ? Math.round(hourly.soil_temperature_0cm[safeIndex] * 10) / 10
+        : Math.round((temp + 2.5) * 10) / 10;
+    const soilTemp6cm =
+      hourly?.soil_temperature_6cm?.[safeIndex] !== undefined
+        ? Math.round(hourly.soil_temperature_6cm[safeIndex] * 10) / 10
+        : Math.round((temp + 1.2) * 10) / 10;
+    const soilTemp18cm =
+      hourly?.soil_temperature_18cm?.[safeIndex] !== undefined
+        ? Math.round(hourly.soil_temperature_18cm[safeIndex] * 10) / 10
+        : Math.round((temp - 0.6) * 10) / 10;
 
     // Humidity status
     let humidityStatus: RealtimeDistrictWeatherData['humidityStatus'] = 'Moderate';
@@ -238,9 +304,12 @@ export async function getRealtimeDistrictWeather(
       soilTemp0cm,
       soilTemp6cm,
       soilTemp18cm,
+      volumetricSoilMoisture0to3cm: currentVolumetricSm03,
+      et0Mm: et0Today,
       humidityStatus,
       rainStatus,
-      hourlyForecast: hourlyForecastList.length > 0 ? hourlyForecastList : generateFallbackHourly(humidity, rainNow),
+      hourlyForecast:
+        hourlyForecastList.length > 0 ? hourlyForecastList : generateFallbackHourly(humidity, rainNow),
     };
   } catch (err) {
     console.warn('Real-time district weather fetch error, using calibrated station telemetry:', err);
@@ -296,9 +365,10 @@ function getFallbackDistrictWeather(
     soilTemp0cm: Math.round(temp + 2.8),
     soilTemp6cm: Math.round(temp + 1.4),
     soilTemp18cm: Math.round(temp - 0.5),
+    volumetricSoilMoisture0to3cm: isDroughtZone ? 0.19 : 0.32,
+    et0Mm: isDroughtZone ? 5.2 : 3.8,
     humidityStatus: humidity >= 65 ? 'High (Humid)' : 'Moderate',
     rainStatus: currentRain > 0 ? 'Light Drizzle' : 'No Rain',
     hourlyForecast: generateFallbackHourly(humidity, currentRain),
   };
 }
-

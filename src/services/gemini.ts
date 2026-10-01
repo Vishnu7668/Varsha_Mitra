@@ -104,7 +104,7 @@ export async function findNearbyAgriCentersWithMaps(params: {
   language?: LanguageCode;
 }): Promise<{
   text: string;
-  places: { title: string; uri: string; address?: string }[];
+  places: { title: string; uri: string; address?: string; reviewSnippets?: string[] }[];
   aiMode: 'live' | 'fallback';
 }> {
   try {

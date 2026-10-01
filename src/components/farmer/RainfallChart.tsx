@@ -102,12 +102,25 @@ export const RainfallChart: React.FC = () => {
             )}
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Soil Moisture:</span>
-              <span className="font-bold text-emerald-400">{data.soilMoisturePercent}%</span>
+              <span className="font-bold text-emerald-400">
+                {data.soilMoisturePercent}% {data.volumetricSoilMoisture ? `(${data.volumetricSoilMoisture} m³/m³)` : ''}
+              </span>
             </div>
+            {data.et0Mm !== undefined && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">ET₀ Evapotranspiration:</span>
+                <span className="font-bold text-teal-400">{data.et0Mm} mm/day</span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Temperature:</span>
               <span className="font-bold text-amber-400">{data.tempMax}°C / {data.tempMin}°C</span>
             </div>
+            {data.isPast && (
+              <div className="mt-1 pt-1 border-t border-slate-800 text-slate-400 text-[10px]">
+                Source: Open-Meteo Archive API
+              </div>
+            )}
             {data.isBreakDay && !data.isPast && (
               <div className="mt-1 pt-1 border-t border-slate-800 text-rose-400 font-semibold text-[11px] flex items-center gap-1">
                 <span>⚠️ Dry Break Day (&lt; 2.5 mm)</span>
@@ -151,8 +164,8 @@ export const RainfallChart: React.FC = () => {
           <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-700/60 border border-slate-300 dark:border-slate-600 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-slate-500" />
             <div className="truncate">
-              <span className="block text-[10px] text-slate-500 uppercase">Observed</span>
-              <span className="truncate text-slate-700 dark:text-slate-200">Past 10 Days</span>
+              <span className="block text-[10px] text-slate-500 uppercase">Archive API</span>
+              <span className="truncate text-slate-700 dark:text-slate-200">Past 14 Days</span>
             </div>
           </div>
         )}
@@ -174,7 +187,7 @@ export const RainfallChart: React.FC = () => {
           <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
           <div className="truncate">
             <span className="block text-[10px] text-sky-600 uppercase">Indicative</span>
-            <span className="truncate text-sky-900 dark:text-sky-200">Days 15 - 30</span>
+            <span className="truncate text-sky-900 dark:text-sky-200">Days 15 - 16</span>
           </div>
         </div>
       </div>

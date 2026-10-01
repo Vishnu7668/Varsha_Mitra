@@ -291,13 +291,19 @@ Respond in ${language}. List each location clearly with its name and distance if
       const groundingChunks =
         response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
-      const places: { title: string; uri: string; address?: string }[] = [];
+      const places: { title: string; uri: string; address?: string; reviewSnippets?: string[] }[] = [];
       for (const chunk of groundingChunks) {
         if (chunk.maps?.uri) {
+          const rawSnippets: any[] = chunk.maps?.placeAnswerSources?.reviewSnippets || [];
+          const snippetStrings: string[] = rawSnippets
+            .map((s: any) => (typeof s === 'string' ? s : s?.reviewText || s?.text || s?.snippet || ''))
+            .filter((s: string) => Boolean(s.trim()));
+
           places.push({
             title: chunk.maps?.title || 'Google Maps Location',
             uri: chunk.maps?.uri,
-            address: chunk.maps?.placeAnswerSources?.reviewSnippets?.[0] || district,
+            address: snippetStrings[0] || district,
+            reviewSnippets: snippetStrings,
           });
         }
       }

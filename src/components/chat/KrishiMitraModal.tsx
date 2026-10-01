@@ -345,7 +345,7 @@ export const KrishiMitraModal: React.FC<KrishiMitraProps> = ({ isFullPage = fals
         </div>
 
         {/* Right Action Cluster: Model Selector & Live Voice Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Model Choice Dropdown */}
           <select
             value={modelType}
@@ -354,19 +354,19 @@ export const KrishiMitraModal: React.FC<KrishiMitraProps> = ({ isFullPage = fals
               setModelType(val);
               showToast(`Switched chat engine to ${val}`, 'info');
             }}
-            className="h-8 px-2 rounded-xl bg-emerald-900/80 border border-emerald-600 text-white text-[11px] font-bold focus:outline-none cursor-pointer"
+            className="h-8 px-1.5 sm:px-2 rounded-xl bg-emerald-900/80 border border-emerald-600 text-white text-[10px] sm:text-[11px] font-bold focus:outline-none cursor-pointer max-w-[85px] sm:max-w-none truncate"
             title="Select Gemini Model"
           >
-            <option value="gemini-3.5-flash">Gemini 3.5 Flash (Default)</option>
-            <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (Fast)</option>
-            <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Deep)</option>
+            <option value="gemini-3.5-flash">Flash</option>
+            <option value="gemini-3.1-flash-lite">Lite</option>
+            <option value="gemini-3.1-pro-preview">Pro</option>
           </select>
 
           {/* Live Voice API Conversation Toggle Button */}
           <button
             type="button"
             onClick={toggleLiveVoiceConversation}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
               isLiveActive
                 ? 'bg-rose-600 border-rose-500 text-white animate-pulse'
                 : 'bg-emerald-700 hover:bg-emerald-600 border-emerald-500 text-white'

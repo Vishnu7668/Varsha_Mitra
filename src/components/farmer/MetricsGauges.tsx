@@ -24,22 +24,22 @@ export const MetricsGauges: React.FC = () => {
   const getDryBreakTheme = (days: number) => {
     if (days >= 11) {
       return {
-        bg: 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200',
+        bg: 'bg-gradient-to-br from-rose-50/80 via-white to-rose-100/40 dark:from-slate-900 dark:via-slate-800 dark:to-rose-950/40 border-rose-200 dark:border-rose-800 text-slate-900 dark:text-white',
         badge: 'Critical Pause',
-        iconColor: 'text-rose-600',
+        iconColor: 'text-rose-600 dark:text-rose-400',
       };
     }
     if (days >= 7) {
       return {
-        bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200',
+        bg: 'bg-gradient-to-br from-amber-50/80 via-white to-amber-100/40 dark:from-slate-900 dark:via-slate-800 dark:to-amber-950/40 border-amber-200 dark:border-amber-800 text-slate-900 dark:text-white',
         badge: 'Moderate Gap',
-        iconColor: 'text-amber-600',
+        iconColor: 'text-amber-600 dark:text-amber-400',
       };
     }
     return {
-      bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200',
+      bg: 'bg-gradient-to-br from-emerald-50/80 via-white to-emerald-100/40 dark:from-slate-900 dark:via-slate-800 dark:to-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-slate-900 dark:text-white',
       badge: 'Continuous Rains',
-      iconColor: 'text-emerald-600',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
     };
   };
 
