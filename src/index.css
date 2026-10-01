@@ -100,24 +100,25 @@ h1, h2, h3, h4, h5, h6 {
 
 html {
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
+  min-height: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
   scroll-behavior: smooth;
 }
 
 body {
   width: 100%;
-  max-width: 100%;
   min-width: 320px;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
-  overflow-x: clip;
 }
 
 /* Responsive Images */
@@ -126,15 +127,4 @@ video,
 canvas,
 svg {
   max-width: 100%;
-}
-
-/* Prevent Horizontal Overflow */
-@media (max-width: 768px) {
-  body {
-    overflow-x: hidden;
-  }
-
-  #root {
-    overflow-x: clip;
-  }
 }
