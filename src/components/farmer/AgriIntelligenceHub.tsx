@@ -403,7 +403,7 @@ export const AgriIntelligenceHub: React.FC = () => {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-sky-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-200 dark:border-slate-600 transition-colors"
                       >
                         <ExternalLink className="w-3 h-3 text-sky-600" />
-                        <span className="max-w-[200px] truncate">{src.title}</span>
+                        <span className="max-w-50 truncate">{src.title}</span>
                       </a>
                     ))}
                   </div>

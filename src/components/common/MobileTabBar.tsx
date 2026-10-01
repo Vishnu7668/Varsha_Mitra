@@ -53,7 +53,7 @@ export const MobileTabBar: React.FC = () => {
               }`}
             >
               <Icon className="w-5 h-5 mb-0.5" />
-              <span className="text-[11px] truncate max-w-[65px]">{tab.label}</span>
+              <span className="text-[11px] truncate max-w-16.25">{tab.label}</span>
             </Link>
           );
         })}
