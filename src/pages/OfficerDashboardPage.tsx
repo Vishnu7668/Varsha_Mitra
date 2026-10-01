@@ -409,9 +409,9 @@ export const OfficerDashboardPage: React.FC = () => {
 
       {/* Filter Bar */}
       <div className="p-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-70">
           {/* Search */}
-          <div className="relative min-w-[180px] flex-1 sm:flex-initial">
+          <div className="relative min-w-45 flex-1 sm:flex-initial">
             <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
             <input
               type="text"
@@ -485,96 +485,11 @@ export const OfficerDashboardPage: React.FC = () => {
 
       {/* Main Grid: Interactive Leaflet Map + Selected Panchayat Side-Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEAFLET MAP (8 cols) */}
-        <div className="lg:col-span-8 bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-md border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-emerald-600" />
-              <span>Hyperlocal Gram Panchayat Risk Map</span>
-            </h3>
-            <span className="text-xs text-slate-400">
-              Click any circle to inspect village risk profile
-            </span>
-          </div>
 
-          {/* Leaflet Map Container */}
-          <div className="h-[420px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 relative z-0">
-            <MapContainer
-              center={[20.5937, 78.9629]} // Central India
-              zoom={5}
-              scrollWheelZoom={false}
-              className="h-full w-full"
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={
-                  isDarkMode
-                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-                    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-                }
-              />
-
-              {filteredPanchayats.map((p) => {
-                const color =
-                  p.riskStatus === 'RED'
-                    ? '#e11d48'
-                    : p.riskStatus === 'AMBER'
-                    ? '#f59e0b'
-                    : '#16a34a';
-
-                return (
-                  <CircleMarker
-                    key={p.id}
-                    center={[p.lat, p.lng]}
-                    radius={selectedPanchayat?.id === p.id ? 12 : 8}
-                    pathOptions={{
-                      color: selectedPanchayat?.id === p.id ? '#ffffff' : color,
-                      fillColor: color,
-                      fillOpacity: 0.85,
-                      weight: selectedPanchayat?.id === p.id ? 3 : 1.5,
-                    }}
-                    eventHandlers={{
-                      click: () => setSelectedPanchayat(p),
-                    }}
-                  >
-                    <Popup>
-                      <div className="text-xs p-1">
-                        <strong className="block text-sm font-bold">{p.villageName}</strong>
-                        <span>
-                          {p.block}, {p.district} ({p.state})
-                        </span>
-                        <div className="mt-1 font-semibold text-rose-600">
-                          Status: {p.riskStatus} ({p.riskScore}/100)
-                        </div>
-                        <div>Dry Break: {p.dryBreakLength} days</div>
-                        <div>Crop: {p.primaryCrop}</div>
-                      </div>
-                    </Popup>
-                  </CircleMarker>
-                );
-              })}
-            </MapContainer>
-          </div>
-
-          {/* Map Legend */}
-          <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-rose-600 inline-block" /> High Break Risk (RED)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-amber-500 inline-block" /> Marginal (AMBER)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-emerald-600 inline-block" /> Safe Onset (GREEN)
-              </span>
-            </div>
-            <span>Leaflet + OpenStreetMap Free Engine</span>
-          </div>
         </div>
 
         {/* SELECTED PANCHAYAT DETAIL SIDE PANEL (4 cols) */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-md border border-slate-200 dark:border-slate-700">
+        <div className="lg:col-span-12 bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-md border border-slate-200 dark:border-slate-700">
           {selectedPanchayat ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
