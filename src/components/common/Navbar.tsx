@@ -166,7 +166,7 @@ export const Navbar: React.FC = () => {
                 <span className="hidden xl:inline text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Zone:
                 </span>
-                <span className="max-w-[120px] truncate">
+                <span className="max-w-30 truncate">
                   {currentScenario?.title || 'Zone'}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5 opacity-70" />
@@ -269,7 +269,7 @@ export const Navbar: React.FC = () => {
 
             {/* AI Status Badge */}
             <div
-              className={`hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+              className={`hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
                 aiMode === 'live' && !isOffline
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700'
                   : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700'
