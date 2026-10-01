@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <!-- Background / element gradients -->
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="60%" stop-color="#facc15" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="farmerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803d" />
+      <stop offset="100%" stop-color="#0f5132" />
+    </linearGradient>
+    <linearGradient id="fieldGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#84cc16" />
+    </linearGradient>
+    <linearGradient id="fieldGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#14532d" />
+      <stop offset="100%" stop-color="#22c55e" />
+    </linearGradient>
+    <linearGradient id="varshaBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="mitraGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#15803d" />
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Sun Rays & Disc -->
+  <g id="sun" transform="translate(370, 110)">
+    <circle cx="30" cy="30" r="55" fill="url(#sunGrad)" />
+    <!-- Rays -->
+    <path d="M 30 -35 L 30 -48 M 80 -15 L 90 -22 M 105 30 L 118 30 M 80 75 L 90 82 M -20 -15 L -30 -22" 
+          stroke="#f59e0b" stroke-width="8" stroke-linecap="round" />
+  </g>
+
+  <!-- Cloud -->
+  <g id="rain-cloud" filter="url(#softShadow)">
+    <path d="M 180 180 
+             C 170 140, 210 90, 270 95 
+             C 300 70, 360 70, 395 100 
+             C 435 95, 470 135, 455 180 
+             C 475 205, 465 240, 430 250 
+             C 415 255, 190 255, 175 235 
+             C 155 210, 165 190, 180 180 Z" 
+          fill="url(#cloudGrad)" />
+  </g>
+
+  <!-- Raindrops -->
+  <g id="raindrops">
+    <!-- Drop 1 -->
+    <path d="M 245 270 C 245 270, 235 295, 235 305 A 10 10 0 1 0 255 305 C 255 295, 245 270, 245 270 Z" fill="#38bdf8" />
+    <!-- Drop 2 -->
+    <path d="M 285 260 C 285 260, 275 285, 275 295 A 10 10 0 1 0 295 295 C 295 285, 285 260, 285 260 Z" fill="#0284c7" />
+    <!-- Drop 3 -->
+    <path d="M 325 275 C 325 275, 315 300, 315 310 A 10 10 0 1 0 335 310 C 335 300, 325 275, 325 275 Z" fill="#38bdf8" />
+    <!-- Drop 4 -->
+    <path d="M 370 265 C 370 265, 360 290, 360 300 A 10 10 0 1 0 380 300 C 380 290, 370 265, 370 265 Z" fill="#0284c7" />
+  </g>
+
+  <!-- Green Rolling Terrace Fields -->
+  <g id="fields">
+    <!-- Village Houses in background -->
+    <g transform="translate(370, 290)">
+      <!-- Back tree -->
+      <circle cx="100" cy="15" r="28" fill="#15803d" />
+      <circle cx="120" cy="5" r="22" fill="#16a34a" />
+      <!-- House 1 -->
+      <polygon points="10,25 35,5 60,25" fill="#15803d" />
+      <rect x="15" y="25" width="40" height="30" fill="#ffffff" rx="2" />
+      <rect x="28" y="32" width="14" height="15" fill="#0f5132" />
+      <!-- House 2 -->
+      <polygon points="55,30 75,12 95,30" fill="#16a34a" />
+      <rect x="60" y="30" width="30" height="25" fill="#ffffff" rx="2" />
+      <rect x="70" y="36" width="10" height="12" fill="#0f5132" />
+    </g>
+
+    <!-- Field contours -->
+    <path d="M 120 370 Q 280 350 490 340 L 490 370 Q 300 390 120 400 Z" fill="#84cc16" opacity="0.6" />
+    <path d="M 125 390 Q 300 370 510 350 L 515 385 Q 290 420 140 435 Z" fill="#22c55e" opacity="0.9" />
+    
+    <!-- Main cradling leaf / field crescent -->
+    <path d="M 115 360 
+             C 120 450, 240 500, 380 470 
+             C 450 455, 500 400, 520 360 
+             C 480 430, 390 480, 260 470 
+             C 180 460, 130 420, 115 360 Z" 
+          fill="url(#fieldGrad2)" />
+
+    <!-- Supporting Leaf Accent on right -->
+    <path d="M 430 450 C 470 440, 510 490, 525 500 C 490 510, 435 485, 430 450 Z" fill="#16a34a" />
+    <path d="M 400 470 C 450 465, 495 530, 490 540 C 440 545, 400 500, 400 470 Z" fill="#22c55e" />
+  </g>
+
+  <!-- Farmer with Turban & Spade/Hoe Silhouette -->
+  <g id="farmer" filter="url(#softShadow)">
+    <!-- Turban (Pagri) -->
+    <path d="M 215 210 
+             C 185 205, 175 235, 185 255 
+             C 195 270, 230 270, 245 260 
+             C 260 250, 265 220, 240 210 
+             C 230 205, 225 210, 215 210 Z" 
+          fill="#14532d" />
+    <!-- Turban folds highlight -->
+    <path d="M 195 222 C 215 220, 238 226, 245 235" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.8" />
+    <path d="M 190 238 C 210 235, 235 242, 242 250" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.8" />
+    <path d="M 198 252 C 215 250, 230 254, 236 260" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8" />
+
+    <!-- Head & Neck -->
+    <circle cx="218" cy="265" r="16" fill="#0f5132" />
+
+    <!-- Hoe/Spade handle across shoulder -->
+    <line x1="120" y1="260" x2="205" y2="330" stroke="#14532d" stroke-width="8" stroke-linecap="round" />
+    <!-- Hoe Blade -->
+    <path d="M 115 250 L 140 240 L 155 268 L 128 276 Z" fill="#14532d" />
+
+    <!-- Farmer Body / Shoulders -->
+    <path d="M 160 380 
+             C 160 320, 185 295, 218 290 
+             C 255 295, 280 325, 285 380 
+             C 240 405, 195 405, 160 380 Z" 
+          fill="url(#farmerGrad)" />
+  </g>
+
+  <!-- Typography: VarshaMitra -->
+  <g id="brand-text">
+    <text x="50" y="525" font-family="'Poppins', 'Inter', sans-serif" font-size="70" font-weight="900" letter-spacing="-1">
+      <tspan fill="url(#varshaBlue)">Varsha</tspan><tspan fill="url(#mitraGreen)">Mitra</tspan>
+    </text>
+    <!-- Leaf on top of the 'i' in Mitra -->
+    <path d="M 432 468 C 430 452, 452 445, 460 442 C 458 458, 442 468, 432 468 Z" fill="#22c55e" />
+  </g>
+
+  <!-- Hindi Tagline with Green Accent Bars -->
+  <g id="tagline" transform="translate(0, 560)">
+    <line x1="50" y1="-8" x2="105" y2="-8" stroke="#16a34a" stroke-width="4" stroke-linecap="round" />
+    <text x="120" y="0" font-family="'Noto Sans Devanagari', 'Inter', sans-serif" font-size="24" font-weight="700" fill="#14532d">
+      बारिश का पूर्वानुमान, खेती का सही निर्णय।
+    </text>
+    <line x1="500" y1="-8" x2="550" y2="-8" stroke="#16a34a" stroke-width="4" stroke-linecap="round" />
+  </g>
+</svg>

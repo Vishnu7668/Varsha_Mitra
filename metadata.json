@@ -1,0 +1,7 @@
+{
+  "name": "VARSHA MITRA - Hyperlocal Monsoon & Sowing Advisory",
+  "description": "Hyperlocal monsoon onset and dry-break prediction and sowing advisory platform for Indian farmers, agriculture officers, and insurance officials.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
