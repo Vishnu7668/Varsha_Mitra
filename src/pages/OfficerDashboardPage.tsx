@@ -585,7 +585,7 @@ export const OfficerDashboardPage: React.FC = () => {
               Select a Gram Panchayat on the map or table to inspect details.
             </div>
           )}
-        </div>
+        
       </div>
 
       {/* Advisory Manager Table */}
